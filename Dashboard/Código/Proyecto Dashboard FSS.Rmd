@@ -1,0 +1,49 @@
+---
+title: "Proytecto Dashboard FSS"
+author: "Fernando Sánchez Sánchez"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    social: menu
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+
+if(!require(dplyr)){install.packages('dplyr')
+  library(dplyr)
+}
+
+if(!require(flexdashboard)){install.packages('flexdashboard')
+  library(flexdashboard)
+}
+
+
+
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
+

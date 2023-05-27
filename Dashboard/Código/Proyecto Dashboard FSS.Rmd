@@ -1,5 +1,5 @@
 ---
-title: "Proytecto Dashboard FSS"
+title: "Proyecto Dashboard FSS"
 author: "Fernando Sánchez Sánchez"
 output: 
   flexdashboard::flex_dashboard:
@@ -19,31 +19,94 @@ if(!require(flexdashboard)){install.packages('flexdashboard')
   library(flexdashboard)
 }
 
+if(!require(tidyverse)){install.packages('tidyverse')
+  library(tidyverse)
+}
 
+if(!require(maps)){install.packages('maps')
+  library(maps)
+}
+
+if(!require(DT)){install.packages('DT')
+  library(DT)
+}
+
+if(!require(ggplot2)){install.packages('ggplot2')
+  library(ggplot2)
+}
+
+```
+
+```{r}
+
+datos <- read_csv(file='Datos depurados.csv')
+datos %>% str()
 
 ```
 
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Chart A
+### Mapa de europa
 
 ```{r}
+datos <- select(datos_or, idno, nwspol, netusoft, netustm, ppltrst, pplfair, pplhlp, hhmmb, gndr, agea, cntry, maritalb, chldhhe, domicil, eduyrs)
+
+densidad1 <- density(datos$nwspol, na.rm = TRUE)
+plot(densidad1, main = "Gráfico de Densidad - nwspol", xlab = "nwspol", ylab = "Densidad")
+
+
+
+
+
+# Preparamos las variables
+vars <- c('ppltrst','pplfair','pplhlp')
+
+
+# Calcular las medias redondeadas a un decimal por género 
+datos.s <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ gndr, data = datos, FUN = function(x) round(mean(x), 1))
+
+
+df <- datos.s %>%
+  select(gndr, ppltrst:pplhlp) %>%
+  pivot_longer(names_to = "variable", values_to = "Media", -gndr)
+
+
+ggplot(df, aes(x = variable, y = Media, fill = gndr)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 3) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
+  labs(fill = "Género") +
+  ylim(0, 10) +
+  theme_minimal()
+
 
 ```
 
 Column {data-width=350}
 -----------------------------------------------------------------------
 
-### Chart B
+### Medias por sexo
 
 ```{r}
-
+ggplot(datos, aes(x = ppltrst)) +
+  geom_density(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - ppltrst", x = "ppltrst", y = "Densidad")
 ```
 
-### Chart C
+### Medias por otra cosa
 
 ```{r}
-
+ggplot(datos, aes(x = pplfair)) +
+  geom_density(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplfair", x = "pplfair", y = "Densidad")
 ```
 
+### Medias por otra cosa más
+
+```{r}
+ggplot(datos, aes(x = pplhlp)) +
+  geom_density(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+```

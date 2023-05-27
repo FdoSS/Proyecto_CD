@@ -52,8 +52,8 @@ if(!require(shinydashboard)){install.packages('shinydashboard')
 
 ```{r}
 
+datos <- read.csv("Datos depurados.csv")
 
-datos  <- read_csv("Dashboard/Código/Datos depurados.csv")
 
 ```
 
@@ -220,9 +220,9 @@ datos$etapa_educativa
 ```
 
 ```{r}
-datos.medias <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + gndr + grupo_edad + etapa_educativa + chldhhe + domicil + maritalb, data = datos, FUN = function(x) round(mean(x), 1))
+datos.medias <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + gndr + chldhhe + domicil + maritalb, data = datos, FUN = function(x) round(mean(x), 1))
 
-#datatable(datos.medias,
+datatable(datos.medias,
           caption = "Tabla muy buena",
           rownames = T,
           filter = "top",

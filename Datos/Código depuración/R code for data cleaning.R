@@ -3,6 +3,8 @@
 
 datos_or <- read.csv("ESS-Data-Wizard-subset-2023-05-20.csv")
 
+
+
 # Visualizamos la estructura de los datos
 
 str(datos_or)
@@ -20,7 +22,7 @@ datos <- select(datos_or, idno, nwspol, netusoft, netustm, ppltrst, pplfair, ppl
 
 str(datos)
 
-describe(datos[,2:15])
+#describe(datos[,2:15])
 
 tabla_frecuencias1 <- table(datos$nwspol)
 tabla_frecuencias2 <- table(datos$netusoft)
@@ -56,6 +58,11 @@ datos <- datos %>%
          eduyrs = ifelse(eduyrs %in% c(77, 88, 99), NA, eduyrs))
 
 
+
+
+
+
+
 # Guardamos como factores las variables categóricas 
 
 ## Género
@@ -83,19 +90,36 @@ datos$maritalb <- factor(datos$maritalb, levels = names(correspondencias_2), lab
 
 ## Niños/as en el hogar
 
-correspondencias_3 <- c("1" = "Con niños/as en el hogar", "2" = "Sin niños/as en el hogar")
+correspondencias_3 <- c("1" = "Con menores en el hogar", "2" = "Sin menores en el hogar")
 
 datos$chldhhe <- factor(datos$chldhhe, levels = names(correspondencias_3), labels = correspondencias_3)
 
 
 ## Lugar de residencia
 
-correspondencias_4 <- c("1" = "Gran ciudad", "2" = "Afueras de una gran ciudad", "3" = "Ciudad pequeña", 
+correspondencias_4 <- c("1" = "Gran ciudad", "2" = "Afueras de una gran ciudad", "3" = "Ciudad pequena", 
                       "4" = "Pueblo rural", "5" = "Granja o casa en el campo")
 datos$domicil <- factor(datos$domicil, levels = names(correspondencias_4), labels = correspondencias_4)
 
 
+# Creamos dos variables adicionales para categorizar la edad y los años de educación
 
+## Grupos de edad
+
+datos$grupo_edad <- cut(datos$agea, breaks = seq(0, 100, 10), labels = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99"), include.lowest = TRUE)
+
+datos$grupo_edad <- as.factor(datos$grupo_edad)
+
+
+## Años de educación
+
+
+datos$etapa_educativa <- cut(datos$eduyrs, breaks = c(0, 6, 12, 14, Inf),
+                             labels = c("E. Primarios", "E. Secundarios Obligatorios",
+                                        "E. Secundarios no obligatorios", "E. superiores"),
+                             include.lowest = TRUE, right = FALSE)
+
+datos$etapa_educativa <- as.factor(datos$etapa_educativa)
 
 
 # Examinamos la distrobución de las variables continuas mediante gráficos de densidad 
@@ -139,5 +163,7 @@ hist(split_data$Mujeres, col = "pink", main = "Histograma de ppltrst (Mujeres)",
 
 hist(split_data$Mujeres, col = "pink", main = "Histograma de ppltrst (Mujeres)", xlab = "ppltrst", add = TRUE)
 
+# Grabados datos depurados
 
+write.csv(datos, file = "Datos depurados.csv", row.names = FALSE)
 

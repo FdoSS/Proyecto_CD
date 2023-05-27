@@ -35,22 +35,40 @@ if(!require(ggplot2)){install.packages('ggplot2')
   library(ggplot2)
 }
 
+if(!require(readr)){install.packages('readr')
+  library(readr)
+}
+
+if(!require(shiny)){install.packages('shiny')
+  library(shiny)
+}
+
+if(!require(shinydashboard)){install.packages('shinydashboard')
+  library(shinydashboard)
+}
+
+
 ```
 
 ```{r}
 
-datos <- read_csv(file='Datos depurados.csv')
-datos %>% str()
+
+datos <- read_csv("Datos depurados.csv")
 
 ```
 
-Column {data-width=650}
+
+Página 1 
+===================
+
+
+Column {data-width=350}
 -----------------------------------------------------------------------
 
 ### Mapa de europa
 
 ```{r}
-datos <- select(datos_or, idno, nwspol, netusoft, netustm, ppltrst, pplfair, pplhlp, hhmmb, gndr, agea, cntry, maritalb, chldhhe, domicil, eduyrs)
+datos <- select(datos, idno, nwspol, netusoft, netustm, ppltrst, pplfair, pplhlp, hhmmb, gndr, agea, cntry, maritalb, chldhhe, domicil, eduyrs)
 
 densidad1 <- density(datos$nwspol, na.rm = TRUE)
 plot(densidad1, main = "Gráfico de Densidad - nwspol", xlab = "nwspol", ylab = "Densidad")
@@ -59,6 +77,17 @@ plot(densidad1, main = "Gráfico de Densidad - nwspol", xlab = "nwspol", ylab = 
 
 
 
+
+
+
+```
+
+Column {data-width=250}
+-----------------------------------------------------------------------
+
+### Medias por sexo
+
+```{r}
 # Preparamos las variables
 vars <- c('ppltrst','pplfair','pplhlp')
 
@@ -79,34 +108,121 @@ ggplot(df, aes(x = variable, y = Media, fill = gndr)) +
   scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
   labs(fill = "Género") +
   ylim(0, 10) +
-  theme_minimal()
-
-
+  theme_minimal()+
+  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
+                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
+                             keywidth = 0.5, keyheight = 1, nrow = 2))
 ```
 
-Column {data-width=350}
+
+### Medias por menores en el hogar
+
+```{r}
+# Preparamos las variables
+vars <- c('ppltrst','pplfair','pplhlp')
+
+
+# Calcular las medias redondeadas a un decimal por género 
+datos.h <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ chldhhe, data = datos, FUN = function(x) round(mean(x), 1))
+
+
+df <- datos.h %>%
+  select(chldhhe, ppltrst:pplhlp) %>%
+  pivot_longer(names_to = "variable", values_to = "Media", -chldhhe)
+
+
+ggplot(df, aes(x = variable, y = Media, fill = chldhhe)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 3) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
+  labs(fill = "Menores en el hogar") +
+  ylim(0, 10) +
+  theme_minimal()+
+  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
+                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
+                             keywidth = 0.5, keyheight = 1, nrow = 2))
+```
+
+
+Column {data-width=250}
 -----------------------------------------------------------------------
 
-### Medias por sexo
+### Medias por estado civil
 
 ```{r}
-ggplot(datos, aes(x = ppltrst)) +
-  geom_density(fill = "lightblue", color = "black") +
-  labs(title = "Distribución de Densidad - ppltrst", x = "ppltrst", y = "Densidad")
+# Preparamos las variables
+vars <- c('ppltrst','pplfair','pplhlp')
+
+
+# Calcular las medias redondeadas a un decimal por estado civil
+datos.e <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ maritalb, data = datos, FUN = function(x) round(mean(x), 1))
+
+
+df <- datos.e %>%
+  select(maritalb, ppltrst:pplhlp) %>%
+  pivot_longer(names_to = "variable", values_to = "Media", -maritalb)
+
+
+ggplot(df, aes(x = variable, y = Media, fill = maritalb)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 2.5) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
+  labs(fill = "Estado civil") +
+  ylim(0, 10) +
+  theme_minimal()+
+  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
+                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
+                             keywidth = 0.5, keyheight = 1, nrow = 2))
 ```
 
-### Medias por otra cosa
+### Medias por lugar de residencia
 
 ```{r}
-ggplot(datos, aes(x = pplfair)) +
-  geom_density(fill = "lightblue", color = "black") +
-  labs(title = "Distribución de Densidad - pplfair", x = "pplfair", y = "Densidad")
+# Preparamos las variables
+vars <- c('ppltrst','pplfair','pplhlp')
+
+
+# Calcular las medias redondeadas a un decimal por lugar de residencia 
+datos.l <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ domicil, data = datos, FUN = function(x) round(mean(x), 1))
+
+
+df <- datos.l %>%
+  select(domicil, ppltrst:pplhlp) %>%
+  pivot_longer(names_to = "variable", values_to = "Media", -domicil)
+
+
+ggplot(df, aes(x = variable, y = Media, fill = domicil)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 3) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
+  labs(fill = "Lugar de residencia") +
+  ylim(0, 10) +
+  theme_minimal()+
+  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
+                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
+                             keywidth = 0.5, keyheight = 1, nrow = 2))
 ```
 
-### Medias por otra cosa más
-
+Tablas 
+===================
 ```{r}
-ggplot(datos, aes(x = pplhlp)) +
-  geom_density(fill = "lightblue", color = "black") +
-  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+
+datos.medias <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + gndr + grupo_edad + etapa_educativa + chldhhe + domicil + maritalb, data = datos, FUN = function(x) round(mean(x), 1))
+
+datatable(datos.medias,
+          caption = "Tralarí",
+          rownames = T,
+          filter = "top",
+          options = list(page.lenght = 25))
 ```
+
+
+Página 3 
+===================

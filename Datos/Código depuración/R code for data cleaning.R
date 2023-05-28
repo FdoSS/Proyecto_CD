@@ -106,7 +106,7 @@ datos$domicil <- factor(datos$domicil, levels = names(correspondencias_4), label
 
 ## Grupos de edad
 
-datos$grupo_edad <- cut(datos$agea, breaks = seq(0, 100, 10), labels = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99"), include.lowest = TRUE)
+datos$grupo_edad <- cut(datos$agea, breaks = seq(15, 90, 15), labels = c("15-29", "30-44", "45-59", "60-74", "75-90"), include.lowest = TRUE)
 
 datos$grupo_edad <- as.factor(datos$grupo_edad)
 
@@ -114,9 +114,9 @@ datos$grupo_edad <- as.factor(datos$grupo_edad)
 ## Años de educación
 
 
-datos$etapa_educativa <- cut(datos$eduyrs, breaks = c(0, 6, 12, 14, Inf),
-                             labels = c("E. Primarios", "E. Secundarios Obligatorios",
-                                        "E. Secundarios no obligatorios", "E. superiores"),
+datos$etapa_educativa <- cut(datos$eduyrs, breaks = c(0, 6, 14, Inf),
+                             labels = c("E. Primarios", "E. Secundarios",
+                                        "E. superiores"),
                              include.lowest = TRUE, right = FALSE)
 
 datos$etapa_educativa <- as.factor(datos$etapa_educativa)

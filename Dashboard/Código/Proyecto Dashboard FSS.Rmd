@@ -7,6 +7,7 @@ output:
     vertical_layout: fill
     social: menu
     source_code: embed
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -26,6 +27,29 @@ if(!require(tidyverse)){install.packages('tidyverse')
 if(!require(maps)){install.packages('maps')
   library(maps)
 }
+
+if(!require(mapdata)){install.packages('mapdata')
+  library(mapdata)
+}
+
+if(!require(rworldmap)){install.packages('rworldmap')
+  library(rworldmap)
+}
+
+if(!require(maptools)){install.packages('maptools')
+  library(maptools)
+}
+
+
+if(!require(rworldxtra)){install.packages('rworldxtra')
+  library(rworldxtra)
+}
+
+if(!require(countrycode)){install.packages('countrycode')
+  library(countrycode)
+}
+
+
 
 if(!require(DT)){install.packages('DT')
   library(DT)
@@ -53,174 +77,325 @@ if(!require(shinydashboard)){install.packages('shinydashboard')
 ```{r}
 
 datos <- read.csv("Datos depurados.csv")
-
-
+datos <- as_tibble(datos)
+#datos$cntry <- as.factor(datos$cntry)
+#datos$gndr <- as.factor(datos$gndr)
 ```
 
 
-Página 1 
+Ranking de los países 
 ===================
 
 
-Column {data-width=350}
+Column {data-width=300}
 -----------------------------------------------------------------------
 
-### Mapa de europa
+### Confianza en los demás
 
 ```{r}
-datos <- select(datos, idno, nwspol, netusoft, netustm, ppltrst, pplfair, pplhlp, hhmmb, gndr, agea, cntry, maritalb, chldhhe, domicil, eduyrs)
-
-densidad1 <- density(datos$nwspol, na.rm = TRUE)
-plot(densidad1, main = "Gráfico de Densidad - nwspol", xlab = "nwspol", ylab = "Densidad")
 
 
 
+library(ggplot2)
+
+medias_paises <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry, data = datos, FUN = function(x) round(mean(x), 1))
+
+# Calcular la media de ppltrst
+media_ppltrst <- mean(medias_paises$ppltrst)
+
+# Ordenar las medias de mayor a menor
+medias_ordenadas <- medias_paises[order(medias_paises$ppltrst, decreasing = TRUE), ]
+
+# Crear el gráfico de barras con ggplot2
+ggplot(medias_ordenadas, aes(x = reorder(cntry, -ppltrst), y = ppltrst, fill = ppltrst)) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient(low = "red", high = "green", name = "Confianza") +
+  labs(x = "País", y = "Media de confianza", title = "Media de confianza por país") +
+  ylim(0, max(medias_ordenadas$ppltrst) + 1) +
+  geom_hline(yintercept = media_ppltrst, col = "red") +
+  annotate("text", x = 1, y = media_ppltrst + 0.2, label = "Media de todos los países", hjust = -1.1, vjust = 0) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+Column {data-width=300}
+-----------------------------------------------------------------------
+### Honestidad percibida en los demás
+
+```{r}
 
 
 
+library(ggplot2)
+
+# Calcular la media de ppltrst
+media_pplfair <- mean(medias_paises$pplfair)
+
+# Ordenar las medias de mayor a menor
+medias_ordenadas2 <- medias_paises[order(medias_paises$pplfair, decreasing = TRUE), ]
+
+# Crear el gráfico de barras con ggplot2
+ggplot(medias_ordenadas2, aes(x = reorder(cntry, -pplfair), y = pplfair, fill = pplfair)) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient(low = "red", high = "green", name = "Honestidad") +
+  labs(x = "País", y = "Media de Honestidad", title = "Media de Honestidad por país") +
+  ylim(0, max(medias_ordenadas2$pplfair) + 1) +
+  geom_hline(yintercept = media_pplfair, col = "red") +
+  annotate("text", x = 1, y = media_pplfair + 0.2, label = "Media de todos los países", hjust = -1.1, vjust = 0) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+Column {data-width=300}
+-----------------------------------------------------------------------
+### Altruismo percibido en los demás
+
+```{r}
+
+
+
+library(ggplot2)
+
+# Calcular la media de ppltrst
+media_pplhlp <- mean(medias_paises$pplhlp)
+
+# Ordenar las medias de mayor a menor
+medias_ordenadas3 <- medias_paises[order(medias_paises$pplhlp, decreasing = TRUE), ]
+
+# Crear el gráfico de barras con ggplot2
+ggplot(medias_ordenadas3, aes(x = reorder(cntry, -pplhlp), y = pplhlp, fill = pplhlp)) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient(low = "red", high = "green", name = "Altruismo") +
+  labs(x = "País", y = "Media de altruismo", title = "Media de altruismo por país") +
+  ylim(0, max(medias_ordenadas3$pplhlp) + 1) +
+  geom_hline(yintercept = media_pplhlp, col = "red") +
+  annotate("text", x = 1, y = media_pplhlp + 0.2, label = "Media de todos los países", hjust = -1.1, vjust = 0) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+Análisis en función de variables demográficas
+===================
+
+```{r}
+
+datos$grupo_edad <- cut(datos$agea, breaks = seq(15, 90, 15), labels = c("15 a 29", "30 a 44", "45 a 59", "60 a 74", "75 a 90"), include.lowest = TRUE)
+
+datos$grupo_edad <- as.factor(datos$grupo_edad)
+
+
+
+datos$etapa_educativa <- cut(datos$eduyrs, breaks = c(0, 6, 14, Inf),
+                             labels = c("E. Primarios", "E. Secundarios",
+                                         "E. Superiores"),
+                             include.lowest = TRUE, right = FALSE)
+
+datos$etapa_educativa <- as.factor(datos$etapa_educativa)
 
 
 ```
+
+inputs {.sidebar data-height=150}
+----------
+
+```{r}
+selectInput("pais_sel",label="Seleccione un país", choices=c("Todos",unique(datos$cntry)),selected="Todos")
+
+```
+
+
 
 Column {data-width=250}
 -----------------------------------------------------------------------
 
-### Medias por sexo
+### Diferencias en función del nivel educativo (`r reactive(input$pais_sel)`)
+
+
 
 ```{r}
-# Preparamos las variables
-vars <- c('ppltrst','pplfair','pplhlp')
+
+medias_por_paises_edu <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + etapa_educativa, data = datos, FUN = function(x) round(mean(x), 1))
+
+# Calcular las medias por etapa educativa
+medias_etapa_educativa <- medias_por_paises_edu %>%
+  group_by(etapa_educativa) %>%
+  summarise(across(c(ppltrst, pplfair, pplhlp), ~ round(mean(.), 1)))
+
+# Crear las filas para el país "Todos" con las medias correspondientes
+filas_todos <- medias_etapa_educativa %>%
+  mutate(cntry = "Todos")
+
+# Agregar las filas al dataframe medias_por_paises
+medias_por_paises_edu <- bind_rows(medias_por_paises_edu, filas_todos)
+
+renderPlot({
+  selected_country <- if (is.null(input$pais_sel) || input$pais_sel == "Todos") {
+    "Todos"
+  } else {
+    input$pais_sel
+  }
+  
+  df <- medias_por_paises_edu %>%
+    filter(cntry == selected_country) %>%
+    gather(key = "variable", value = "media", -cntry, -etapa_educativa)
+  
+  ggplot(df, aes(x = variable, y = media, fill = etapa_educativa)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    geom_text(aes(label = round(media, 1)), vjust = -0.5, position = position_dodge(width = 0.9), color = "black", size = 3) +
+    labs(x = "Variable", y = "Media", title = "Medias por nivel educativo y país") +
+    scale_x_discrete(labels = c("Confianza", "Honestidad", "Altruismo")) +
+    scale_fill_brewer(palette = "Set1") +
+    ylim(0, 10) +
+    theme_minimal() +
+    theme(legend.position = "top", legend.direction = "horizontal")
+})
 
 
-# Calcular las medias redondeadas a un decimal por género 
-datos.s <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ gndr, data = datos, FUN = function(x) round(mean(x), 1))
 
 
-df <- datos.s %>%
-  select(gndr, ppltrst:pplhlp) %>%
-  pivot_longer(names_to = "variable", values_to = "Media", -gndr)
 
 
-ggplot(df, aes(x = variable, y = Media, fill = gndr)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 3) +
-  scale_fill_brewer(palette = "Set1") +
-  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
-  labs(fill = "Género") +
-  ylim(0, 10) +
-  theme_minimal()+
-  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
-                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
-                             keywidth = 0.5, keyheight = 1, nrow = 2))
 ```
 
-
-### Medias por menores en el hogar
-
+### Diferencias en función de la edad (`r reactive(input$pais_sel)`)
 ```{r}
-# Preparamos las variables
-vars <- c('ppltrst','pplfair','pplhlp')
+
+medias_por_paises <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + grupo_edad, data = datos, FUN = function(x) round(mean(x), 1))
 
 
-# Calcular las medias redondeadas a un decimal por género 
-datos.h <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ chldhhe, data = datos, FUN = function(x) round(mean(x), 1))
+# Calcular las medias por grupo de edad
+medias_grupo_edad <- medias_por_paises %>%
+  group_by(grupo_edad) %>%
+  summarise(across(c(ppltrst, pplfair, pplhlp), ~ round(mean(.), 1)))
+
+# Crear las filas para el país "Todos" con las medias correspondientes
+filas_todos <- medias_grupo_edad %>%
+  mutate(cntry = "Todos")
+
+# Agregar las filas al dataframe medias_por_paises
+medias_por_paises <- bind_rows(medias_por_paises, filas_todos)
 
 
-df <- datos.h %>%
-  select(chldhhe, ppltrst:pplhlp) %>%
-  pivot_longer(names_to = "variable", values_to = "Media", -chldhhe)
+renderPlot({
+  selected_country <- if (is.null(input$pais_sel) || input$pais_sel == "Todos") {
+    "Todos"
+  } else {
+    input$pais_sel
+  }
+  
+  df <- medias_por_paises %>%
+    filter(cntry == selected_country) %>%
+    gather(key = "variable", value = "media", -cntry, -grupo_edad)
+  
+  ggplot(df, aes(x = variable, y = media, fill = grupo_edad)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    geom_text(aes(label = round(media, 1)), vjust = -0.5, position = position_dodge(width = 0.9), color = "black", size = 3) +
+    labs(x = "Variable", y = "Media", title = "Medias por grupo de edad y país") +
+    scale_x_discrete(labels = c("Confianza", "Honestidad", "Altruismo")) +
+    scale_fill_brewer(palette = "Set1") +
+    ylim(0, 10) +
+    theme_minimal() +
+    theme(legend.position = "top", legend.direction = "horizontal")
+})
 
-
-ggplot(df, aes(x = variable, y = Media, fill = chldhhe)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 3) +
-  scale_fill_brewer(palette = "Set1") +
-  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
-  labs(fill = "Menores en el hogar") +
-  ylim(0, 10) +
-  theme_minimal()+
-  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
-                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
-                             keywidth = 0.5, keyheight = 1, nrow = 2))
 ```
 
 
 Column {data-width=250}
 -----------------------------------------------------------------------
 
-### Medias por estado civil
+### Diferencias en función del estado civil (`r reactive(input$pais_sel)`)
+
+
 
 ```{r}
-# Preparamos las variables
-vars <- c('ppltrst','pplfair','pplhlp')
+medias_por_paises_ec <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + maritalb, data = datos, FUN = function(x) round(mean(x), 1))
 
+# Calcular las medias por etapa educativa
+medias_ec <- medias_por_paises_ec %>%
+  group_by(maritalb) %>%
+  summarise(across(c(ppltrst, pplfair, pplhlp), ~ round(mean(.), 1)))
 
-# Calcular las medias redondeadas a un decimal por estado civil
-datos.e <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ maritalb, data = datos, FUN = function(x) round(mean(x), 1))
+# Crear las filas para el país "Todos" con las medias correspondientes
+filas_todos <- medias_ec %>%
+  mutate(cntry = "Todos")
 
+# Agregar las filas al dataframe medias_por_paises
+medias_por_paises_ec <- bind_rows(medias_por_paises_ec, filas_todos)
 
-df <- datos.e %>%
-  select(maritalb, ppltrst:pplhlp) %>%
-  pivot_longer(names_to = "variable", values_to = "Media", -maritalb)
-
-
-ggplot(df, aes(x = variable, y = Media, fill = maritalb)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 2.5) +
-  scale_fill_brewer(palette = "Set1") +
-  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
-  labs(fill = "Estado civil") +
-  ylim(0, 10) +
-  theme_minimal()+
-  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
-                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
-                             keywidth = 0.5, keyheight = 1, nrow = 2))
+renderPlot({
+  selected_country <- if (is.null(input$pais_sel) || input$pais_sel == "Todos") {
+    "Todos"
+  } else {
+    input$pais_sel
+  }
+  
+  df <- medias_por_paises_ec %>%
+    filter(cntry == selected_country) %>%
+    gather(key = "variable", value = "media", -cntry, -maritalb)
+  
+  ggplot(df, aes(x = variable, y = media, fill = maritalb)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    geom_text(aes(label = round(media, 1)), vjust = -0.5, position = position_dodge(width = 0.9), color = "black", size = 3) +
+    labs(x = "Variable", y = "Media", title = "Medias por estado civil y país") +
+    scale_x_discrete(labels = c("Confianza", "Honestidad", "Altruismo")) +
+    scale_fill_brewer(palette = "Set1") +
+    ylim(0, 10) +
+    theme_minimal() +
+    theme(legend.position = "top", legend.direction = "horizontal")
+})
 ```
 
-### Medias por lugar de residencia
+### Diferencias en función del lugar de residencia (`r reactive(input$pais_sel)`)
 
 ```{r}
-# Preparamos las variables
-vars <- c('ppltrst','pplfair','pplhlp')
+medias_por_paises_res <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + domicil, data = datos, FUN = function(x) round(mean(x), 1))
 
+# Calcular las medias por etapa educativa
+medias_res <- medias_por_paises_res %>%
+  group_by(domicil) %>%
+  summarise(across(c(ppltrst, pplfair, pplhlp), ~ round(mean(.), 1)))
 
-# Calcular las medias redondeadas a un decimal por lugar de residencia 
-datos.l <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ domicil, data = datos, FUN = function(x) round(mean(x), 1))
+# Crear las filas para el país "Todos" con las medias correspondientes
+filas_todos <- medias_res %>%
+  mutate(cntry = "Todos")
 
+# Agregar las filas al dataframe medias_por_paises
+medias_por_paises_res <- bind_rows(medias_por_paises_res, filas_todos)
 
-df <- datos.l %>%
-  select(domicil, ppltrst:pplhlp) %>%
-  pivot_longer(names_to = "variable", values_to = "Media", -domicil)
-
-
-ggplot(df, aes(x = variable, y = Media, fill = domicil)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = Media), vjust = -0.5, position = position_dodge(width = 1), color = "black", size = 3) +
-  scale_fill_brewer(palette = "Set1") +
-  scale_x_discrete(labels = c("Confianza", "Honestidad", "Ayuda")) +
-  labs(fill = "Lugar de residencia") +
-  ylim(0, 10) +
-  theme_minimal()+
-  theme(legend.position = c(0.50, 0.80), legend.direction = "horizontal") +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, title.vjust = 0.5,
-                             label.position = "right", label.hjust = 0.5, label.vjust = 0.5,
-                             keywidth = 0.5, keyheight = 1, nrow = 2))
+renderPlot({
+  selected_country <- if (is.null(input$pais_sel) || input$pais_sel == "Todos") {
+    "Todos"
+  } else {
+    input$pais_sel
+  }
+  
+  df <- medias_por_paises_res %>%
+    filter(cntry == selected_country) %>%
+    gather(key = "variable", value = "media", -cntry, -domicil)
+  
+  ggplot(df, aes(x = variable, y = media, fill = domicil)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    geom_text(aes(label = round(media, 1)), vjust = -0.5, position = position_dodge(width = 0.9), color = "black", size = 3) +
+    labs(x = "Variable", y = "Media", title = "Medias por lugar de residencia y país") +
+    scale_x_discrete(labels = c("Confianza", "Honestidad", "Altruismo")) +
+    scale_fill_brewer(palette = "Set1") +
+    ylim(0, 10) +
+    theme_minimal() +
+    theme(legend.position = "top", legend.direction = "horizontal")
+})
 ```
 
-Tablas 
+Tablas dinámicas
 ===================
 
-```{r}
-datos$grupo_edad
-datos$etapa_educativa
 
-```
 
 ```{r}
-datos.medias <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + gndr + chldhhe + domicil + maritalb, data = datos, FUN = function(x) round(mean(x), 1))
+datos.medias <- aggregate(cbind(ppltrst, pplfair, pplhlp) ~ cntry + gndr + grupo_edad + etapa_educativa + chldhhe + domicil + maritalb, data = datos, FUN = function(x) round(mean(x), 1))
+
+colnames(datos.medias) <- c("País", "Género", "Grupo de edad", "Nivel educativo", "Vive con menores", "Lugar de residencia", "Estado civil", "Confianza", "Honestidad", "Altruismo")
+
 
 datatable(datos.medias,
           caption = "Tabla muy buena",
@@ -231,5 +406,92 @@ datatable(datos.medias,
 ```
 
 
-Página 3 
+Acerca del estudio
 ===================
+
+inputs {.sidebar data-height=400}
+----------
+
+Fuente:
+European Social Survey. (2020). ESS round 10 - 2020. Democracy, Digital social contacts [Archivo de datos]. Recuperado de [https://www.europeansocialsurvey.org/data/]
+
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Contexto 
+
+
+
+La Encuesta Social Europea (ESS) es una encuesta transnacional de carácter académico, fundada en 2001. Hasta la fecha se ha realizado en 40 países. Sus tres objetivos son, en primer lugar, supervisar e interpretar los cambios de actitudes y valores de los ciudadanos en Europa e investigar cómo interactúan con las cambiantes instituciones europeas; en segundo lugar, avanzar y consolidar métodos mejorados de medición de encuestas transnacionales en Europa y fuera de ella; y, en tercer lugar, desarrollar una serie de indicadores sociales europeos, incluidos indicadores de actitudes. La encuesta implica un estricto muestreo probabilístico aleatorio, un elevado índice de respuesta y rigurosos protocolos de traducción. 
+
+La recogida de datos de la EES se basa en una entrevista cara a cara de una hora de duración. Debido al impacto de la pandemia de COVID-19 en la décima ronda, un total de 9 países cambiaron a un enfoque de autocumplimentación (web y papel), mientras que 22 países utilizaron el enfoque habitual de trabajo de campo cara a cara de la ESS. Además, los países que optaron por el enfoque presencial habitual pudieron utilizar entrevistas en vídeo como apoyo a las entrevistas en persona. Se recomienda precaución a la hora de realizar comparaciones entre países que utilicen el enfoque presencial y el autocumplimentado en la 10ª edición de la EES, y a la hora de realizar comparaciones de series temporales en un país que haya utilizado el enfoque de autocumplimentación en la 10ª edición.
+
+
+### Variables 
+
+La descripción de todas las variables y sus códigos se puede consultar en: https://ess-search.nsd.no/en/study/172ac431-2a06-41df-9dab-c1fd8f3877e7
+
+Las variables dependientes analizadas son:
+
+CONFIANZA - ppltrst - Most people can be trusted or you can't be too careful
+A4 Using this card, generally speaking, would you say that most people can be trusted, or that you can't be too careful in dealing with people? Please tell me on a score of 0 to 10, where 0 means you can't be too careful and 10 means that most people can be trusted.
+
+Value	Category
+0	You can't be too careful
+1	1
+2	2
+3	3
+4	4
+5	5
+6	6
+7	7
+8	8
+9	9
+10	Most people can be trusted
+77	Refusal*
+88	Don't know*
+99	No answer*
+ *) Missing Value 
+
+
+HONESTIDAD- pplfair - Most people try to take advantage of you, or try to be fair
+A5 Using this card, do you think that most people would try to take advantage of you if they got the chance, or would they try to be fair?
+
+Value	Category
+0	Most people try to take advantage of me
+1	1
+2	2
+3	3
+4	4
+5	5
+6	6
+7	7
+8	8
+9	9
+10	Most people try to be fair
+77	Refusal*
+88	Don't know*
+99	No answer*
+ *) Missing Value 
+
+
+ALTRUISMO - pplhlp - Most of the time people help or looking out for themselves
+A6 Would you say that most of the time people try to be helpful or that they are mostly looking out for themselves?
+
+Value	Category
+0	People mostly look out for themselves
+1	1
+2	2
+3	3
+4	4
+5	5
+6	6
+7	7
+8	8
+9	9
+10	People mostly try to be helpful
+77	Refusal*
+88	Don't know*
+99	No answer*
+ *) Missing Value 

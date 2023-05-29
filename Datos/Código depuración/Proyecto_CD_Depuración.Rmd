@@ -1,0 +1,404 @@
+---
+title: "Proyecto_CD_depuracion"
+author: "FSS"
+date: "2023-05-29"
+output: 
+  html_document:
+    toc: TRUE
+    number_sections: TRUE
+    toc_float: TRUE
+    fig.show: 'hold'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE, fig.width = 8,fig.height = 8)
+```
+
+# Paquetes
+
+```{r}
+if(!require(tidyverse)){install.packages('tidyverse')
+  library(tidyverse)
+}
+
+if(!require(knitr)){install.packages('knitr')
+  library(knitr)
+}
+
+if(!require(kableExtra)){install.packages('kableExtra')
+  library(kableExtra)
+}
+
+if(!require(lorem)){install.packages('lorem')
+  library(lorem)
+}
+
+if(!require(xtable)){install.packages('xtable')
+  library(xtable)
+}
+
+if(!require(dplyr)){install.packages('dplyr')
+  library(dplyr)
+}
+
+if(!require(ggplot2)){install.packages('ggplot2')
+  library(ggplot2)
+}
+
+
+if(!require(kableExtra)){install.packages('kableExtra')
+  library(kableExtra)
+}
+
+
+```
+
+# Carga de datos
+
+```{r}
+datos_or <- read.csv("ESS-Data-Wizard-subset-2023-05-20.csv")
+```
+
+# Selección de las variables de estudio
+
+```{r}
+# Extraemos las variables de interés y las guardamos en el dataframe "datos"
+
+datos <- select(datos_or, idno, nwspol, netusoft, netustm, ppltrst, pplfair, pplhlp, hhmmb, gndr, agea, cntry, maritalb, chldhhe, domicil, eduyrs)
+
+#Inspeccionamos las variables
+
+str(datos)
+```
+
+
+# Inspeccionamos las variables de estudio
+```{r}
+
+
+# Variables numéricas
+numeric_vars <- c("ppltrst", "pplfair", "pplhlp", "agea", "eduyrs")
+
+# Variables categóricas
+categorical_vars <- c("gndr", "cntry", "maritalb", "chldhhe", "domicil", "eduyrs")
+
+```
+
+## Tablas de frecuencias para variables numéricas
+```{r}
+
+# Tablas de frecuencias para variables numéricas
+for (var in numeric_vars) {
+  freq_table <- table(datos[[var]])
+  print(paste("Tabla de frecuencias para", var))
+  print(freq_table)
+}
+
+
+```
+
+## Generar gráficos para variables numéricas
+
+
+```{r, fig.width=10, fig.height=4}
+# Generargráficos para variables numéricas
+
+
+ggplot(datos, aes(x = ppltrst)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - ppltrst", x = "ppltrst", y = "Densidad")
+
+ggplot(datos, aes(x = pplfair)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplfair", x = "pplfair", y = "Densidad")
+
+ggplot(datos, aes(x = pplhlp)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+
+ggplot(datos, aes(x = agea)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+
+ggplot(datos, aes(x = eduyrs)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+```
+
+# Recodificamos las variables para eliminar las categorias Not applicable, Refusal, Don't know, No answer en las diferentes variables
+
+```{r}
+
+datos <- datos %>% 
+  mutate(nwspol = ifelse(nwspol %in% c(6666, 7777, 8888, 9999), NA, nwspol),
+         netustm = ifelse(netustm %in% c(6666, 7777, 8888, 9999), NA, netustm),
+         netusoft = ifelse(netusoft %in% c(7, 8, 9), NA, netusoft),
+         ppltrst = ifelse(ppltrst %in% c(77, 88, 99), NA, ppltrst),
+         pplfair = ifelse(pplfair %in% c(77, 88, 99), NA, pplfair),
+         pplhlp = ifelse(pplhlp %in% c(77, 88, 99), NA, pplhlp),
+         hhmmb = ifelse(hhmmb %in% c(77, 88, 99), NA, hhmmb),
+         gndr = ifelse(gndr %in% c(99), NA, gndr),
+         agea = ifelse(agea %in% c(999), NA,agea),
+         maritalb = ifelse(maritalb %in% c(77, 88, 99), NA, maritalb),
+         chldhhe = ifelse(chldhhe %in% c(6, 7, 8, 9), NA, chldhhe),
+         domicil = ifelse(domicil %in% c(77, 88, 99), NA, domicil),
+         maritalb = ifelse(maritalb %in% c(7, 8, 9), NA, maritalb),
+         eduyrs = ifelse(eduyrs %in% c(77, 88, 99), NA, eduyrs))
+```
+
+## Guardamos como factores las variables categóricas 
+```{r}
+# Guardamos como factores las variables categóricas 
+
+## Género
+
+datos$gndr <- factor(datos$gndr, levels = c(1, 2), labels = c("Varones", "Mujeres"))
+
+## País
+
+# Creamos un vector de valores correspondientes
+correspondencias_1 <- c("AL" = "Albania", "AT" = "Austria", "BE" = "Belgium", "BG" = "Bulgaria", "CH" = "Switzerland", "CY" = "Cyprus", "CZ" = "Czechia", "DE" = "Germany", "DK" = "Denmark", "EE" = "Estonia", "ES" = "Spain", "FI" = "Finland", "FR" = "France", "GB" = "United Kingdom", "GE" = "Georgia", "GR" = "Greece", "HR" = "Croatia", "HU" = "Hungary", "IE" = "Ireland", "IS" = "Iceland",
+ "IL" = "Israel", "IT" = "Italy", "LT" = "Lithuania", "LU" = "Luxembourg", "LV" = "Latvia",
+ "ME" = "Montenegro", "MK" = "North Macedonia", "NL" = "Netherlands", "NO" = "Norway",
+"PL" = "Poland", "PT" = "Portugal", "RO" = "Romania", "RS" = "Serbia", "RU" = "Russian Federation",
+"SE" = "Sweden", "SI" = "Slovenia", "SK" = "Slovakia", "TR" = "Turkey", "UA" = "Ukraine",
+"XK" = "Kosovo")
+
+datos$cntry <- factor(datos$cntry, levels = names(correspondencias_1), labels = correspondencias_1)
+
+
+## Estado civil
+
+correspondencias_2 <- c("1" = "Casado/a", "2" = "Pareja de hecho", "3" = "Separado/a", "4" = "Divorciado/a", "5" = "Viudo/a", "6" = "Soltero/a")
+
+datos$maritalb <- factor(datos$maritalb, levels = names(correspondencias_2), labels = correspondencias_2)
+
+## Niños/as en el hogar
+
+correspondencias_3 <- c("1" = "Con menores en el hogar", "2" = "Sin menores en el hogar")
+
+datos$chldhhe <- factor(datos$chldhhe, levels = names(correspondencias_3), labels = correspondencias_3)
+
+
+## Lugar de residencia
+
+correspondencias_4 <- c("1" = "Gran ciudad", "2" = "Afueras de una gran ciudad", "3" = "Ciudad pequena", 
+                      "4" = "Pueblo rural", "5" = "Granja o casa en el campo")
+datos$domicil <- factor(datos$domicil, levels = names(correspondencias_4), labels = correspondencias_4)
+```
+
+# Creamos dos variables adicionales para categorizar la edad y los años de educación
+
+## Grupos de edad
+```{r}
+datos$grupo_edad <- cut(datos$agea, breaks = seq(15, 90, 15), labels = c("15-29", "30-44", "45-59", "60-74", "75-90"), include.lowest = TRUE)
+
+datos$grupo_edad <- as.factor(datos$grupo_edad)
+```
+
+## Años de educación
+```{r}
+datos$etapa_educativa <- cut(datos$eduyrs, breaks = c(0, 6, 14, Inf),
+                             labels = c("E. Primarios", "E. Secundarios",
+                                        "E. superiores"),
+                             include.lowest = TRUE, right = FALSE)
+
+datos$etapa_educativa <- as.factor(datos$etapa_educativa)
+```
+
+
+# Examinamos la distrobución de las variables continuas mediante gráficos de densidad 
+
+## Generar gráficos para variables numéricas
+
+
+```{r, fig.width=10, fig.height=4}
+# Generamos gráficos para variables numéricas
+
+
+ggplot(datos, aes(x = ppltrst)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - ppltrst", x = "ppltrst", y = "Densidad")
+
+ggplot(datos, aes(x = pplfair)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplfair", x = "pplfair", y = "Densidad")
+
+ggplot(datos, aes(x = pplhlp)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+
+ggplot(datos, aes(x = agea)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+
+ggplot(datos, aes(x = eduyrs)) +
+  geom_histogram(fill = "lightblue", color = "black") +
+  labs(title = "Distribución de Densidad - pplhlp", x = "pplhlp", y = "Densidad")
+
+
+
+```
+
+## Tablas de frecuencias de las variables categóricas
+
+```{r}
+
+# Variable "gndr"
+table_gndr <- table(datos$gndr)
+table_df_gndr <- as.data.frame(table_gndr)
+table_df_gndr <- rename(table_df_gndr, "Categoría" = 1, "Frecuencia" = 2)
+kable(table_df_gndr, caption = "Tabla de frecuencias para gndr")
+
+# Variable "cntry"
+table_cntry <- table(datos$cntry)
+table_df_cntry <- as.data.frame(table_cntry)
+table_df_cntry <- rename(table_df_cntry, "Categoría" = 1, "Frecuencia" = 2)
+kable(table_df_cntry, caption = "Tabla de frecuencias para cntry")
+
+# Variable "maritalb"
+table_maritalb <- table(datos$maritalb)
+table_df_maritalb <- as.data.frame(table_maritalb)
+table_df_maritalb <- rename(table_df_maritalb, "Categoría" = 1, "Frecuencia" = 2)
+kable(table_df_maritalb, caption = "Tabla de frecuencias para maritalb")
+
+# Variable "chldhhe"
+table_chldhhe <- table(datos$chldhhe)
+table_df_chldhhe <- as.data.frame(table_chldhhe)
+table_df_chldhhe <- rename(table_df_chldhhe, "Categoría" = 1, "Frecuencia" = 2)
+kable(table_df_chldhhe, caption = "Tabla de frecuencias para chldhhe")
+
+# Variable "domicil"
+table_domicil <- table(datos$domicil)
+table_df_domicil <- as.data.frame(table_domicil)
+table_df_domicil <- rename(table_df_domicil, "Categoría" = 1, "Frecuencia" = 2)
+kable(table_df_domicil, caption = "Tabla de frecuencias para domicil")
+
+# Variable "eduyrs"
+table_eduyrs <- table(datos$eduyrs)
+table_df_eduyrs <- as.data.frame(table_eduyrs)
+table_df_eduyrs <- rename(table_df_eduyrs, "Categoría" = 1, "Frecuencia" = 2)
+kable(table_df_eduyrs, caption = "Tabla de frecuencias para eduyrs")
+
+
+```
+
+## Boxplot de las variables de estudio
+
+```{r, fig.width=10, fig.height=4}
+
+
+df <- data.frame(
+  variable = rep(c("ppltrst", "pplfair", "pplhlp"), each = nrow(datos)),
+  value = c(datos$ppltrst, datos$pplfair, datos$pplhlp)
+)
+
+ggplot(df, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  labs(title = "Boxplot de ppltrst, pplfair y pplhlp", x = "Variable", y = "Valor") +
+  theme_minimal() +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink"))
+
+
+```
+
+
+# Medias de las tres variables de estudio en función de las variables categóricas
+
+## País
+
+```{r}
+
+
+# Calculamos las medias por país, excluyendo valores NA y redondeando a 1 decimal
+medias_por_pais <- datos %>%
+  group_by(cntry) %>%
+  summarize(ppltrst_media = round(mean(ppltrst, na.rm = TRUE), 1),
+            pplfair_media = round(mean(pplfair, na.rm = TRUE), 1),
+            pplhlp_media = round(mean(pplhlp, na.rm = TRUE), 1))
+
+# Creamos la tabla formateada
+kable(medias_por_pais, format = "html", caption = "Medias por país de las variables ppltrst, pplfair y pplhlp") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+## Género
+
+```{r, fig.width=10, fig.height=10}
+
+# Calculamos las medias por género, excluyendo valores NA y redondeando a 1 decimal
+medias_por_genero <- datos %>%
+  group_by(gndr) %>%
+  summarize(ppltrst_media = round(mean(ppltrst, na.rm = TRUE), 1),
+            pplfair_media = round(mean(pplfair, na.rm = TRUE), 1),
+            pplhlp_media = round(mean(pplhlp, na.rm = TRUE), 1))
+
+# creamos la tabla formateada
+kable(medias_por_genero, format = "html", caption = "Medias por género de las variables ppltrst, pplfair y pplhlp") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+## Estado civil
+
+```{r}
+
+medias_maritalb <- datos %>%
+  group_by(maritalb) %>%
+  summarize(ppltrst_media = round(mean(ppltrst, na.rm = TRUE), 1),
+            pplfair_media = round(mean(pplfair, na.rm = TRUE), 1),
+            pplhlp_media = round(mean(pplhlp, na.rm = TRUE), 1))
+
+kable(medias_maritalb, format = "html", caption = "Medias por categoría de maritalb") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+## Lugar de residencia
+
+```{r}
+medias_domicil <- datos %>%
+  group_by(domicil) %>%
+  summarize(ppltrst_media = round(mean(ppltrst, na.rm = TRUE), 1),
+            pplfair_media = round(mean(pplfair, na.rm = TRUE), 1),
+            pplhlp_media = round(mean(pplhlp, na.rm = TRUE), 1))
+
+kable(medias_domicil, format = "html", caption = "Medias por categoría de domicil") %>%
+  kable_styling(full_width = FALSE)
+```
+
+## Grupos de edad
+
+```{r}
+medias_grupo_edad <- datos %>%
+  group_by(grupo_edad) %>%
+  summarize(ppltrst_media = round(mean(ppltrst, na.rm = TRUE), 1),
+            pplfair_media = round(mean(pplfair, na.rm = TRUE), 1),
+            pplhlp_media = round(mean(pplhlp, na.rm = TRUE), 1))
+
+kable(medias_grupo_edad, format = "html", caption = "Medias por categoría de grupo_edad") %>%
+  kable_styling(full_width = FALSE)
+```
+
+## Nivel educativo
+
+```{r}
+medias_etapa_educativa <- datos %>%
+  group_by(etapa_educativa) %>%
+  summarize(ppltrst_media = round(mean(ppltrst, na.rm = TRUE), 1),
+            pplfair_media = round(mean(pplfair, na.rm = TRUE), 1),
+            pplhlp_media = round(mean(pplhlp, na.rm = TRUE), 1))
+
+kable(medias_etapa_educativa, format = "html", caption = "Medias por categoría de etapa_educativa") %>%
+  kable_styling(full_width = FALSE)
+```
+
+# Guardamos la base depurada
+
+```{r}
+# Grabados datos depurados
+
+write.csv(datos, file = "Datos depurados.csv", row.names = FALSE)
+```
+

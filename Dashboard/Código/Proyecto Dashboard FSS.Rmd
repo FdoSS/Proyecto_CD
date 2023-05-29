@@ -71,6 +71,9 @@ if(!require(shinydashboard)){install.packages('shinydashboard')
   library(shinydashboard)
 }
 
+if(!require(knitr)){install.packages('knitr')
+  library(knitr)
+}
 
 ```
 

@@ -1,9 +1,181 @@
+%!TEX encoding = UTF-8 Unicode
+
+
 \documentclass{article}
+\title{Informe de resultados}
+\author{Fernando Sanchez Sanchez}
+\usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{geometry}
+  \geometry{
+  a4paper,
+  total={170mm,257mm},
+  left=20mm,
+  top=20mm,
+  }
+\renewcommand{\refname}{Referencias}
+\renewcommand{\tablename}{Tablas}
+\renewcommand{\partname}{Bloque}
+
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
+\maketitle
+
+\section{Introduccion}
+
+DAVID: PONGO ALGUNOS TEXTOS EN INGLES PORQUE ME HAN DADO MUCHOS PROBLEMAS LAS TILDES. HE INTENTADO ARREGLARLO, PENSANDO QUE ERA POR LA CODIFICACION, PERO NO HE SIDO CAPAZ. LO SIENTO.
+
+
+The data used for the challenges have been extracted from the tenth wave (ESS round 10 - 2020. Democracy, Digital social contacts) of the \textbf{European Social Survey (ESS)}. This is a widely used data source for sociological and social science studies in Europe. This survey is conducted on a regular basis and its main objective is to collect information on the attitudes, values and behaviors of European citizens.
+
+The \textbf{ESS Round 10} includes a wide range of variables covering different aspects of social life. These variables are divided into different categories, such as demographics, political attitudes, subjective well-being, health, employment, education, religion, voting behavior, among others.
+
+Some of the variables that can be found in Round 10 of the ESS include:
+
+\begin{itemize}
+\item \textit{Demographics}: age, gender, marital status, household composition, educational level, income, occupation, among others.
+\item \textit{Attitudes and values}: Trust in institutions, political attitudes, tolerance towards diversity, social values, civic participation, among others.
+\item \textit{Subjective well-being}: Satisfaction with life, happiness, quality of life, self-esteem, among others.
+\item \textit{Health}: Perceived health status, chronic diseases, access to health services, healthy lifestyle, among others.
+\item \textit{Employment}: Employment status, working conditions, unemployment, job satisfaction, work-life balance, among others.
+\item \textit{Education}: Educational level attained, access to education, educational inequalities, attitudes towards education, among others.
+\item \textit{Religion}: Religious affiliation, religious practices, importance of religion in life, attitudes towards religion, among others.
+\end{itemize}
+
+For a complete list of variables and their definitions, please refer to the official survey documentation, which is available on the official website of the European Social Survey (https://www.europeansocialsurvey.org/).
+
+\section{Objetivo del proyecto de datos}
+
+The main objective of this project is to design a dashboard that allows for a clear and accessible visualization of the distribution of variables related to social trust, social interactions, and attitudes towards cooperation and reciprocity (Trust, Fairness, and Altruism, respectively) in different European countries, as well as their relationship with sociodemographic variables such as age, gender, education level, marital status, and place of residence. The goal is to identify strengths and weaknesses in these aspects across different European regions in order to design and implement specific plans. Therefore, the chosen visualization type would be analysis-oriented (exploration through a dashboard).
+
+The primary audience for this dashboard are the decision-makers in social policy from various European and local institutions at different levels (national, local, etc.). Given their heterogeneity, it is assumed that they do not have a high level of statistical knowledge or experience with complex visualizations (they are not experts). Thus, the dashboard design should be intuitive, easy to use and understand, avoiding statistical complexity and providing clear and relevant information for decision-making.
+
+Questions that the audience could address with the visualization include:
+
+\begin{itemize}
+  \item What is the distribution of trust, fairness, and altruism levels across different European countries?
+  \item How does trust, fairness, and altruism vary with age in different countries?
+  \item Are there gender differences in trust, fairness, and altruism levels in European countries?
+  \item How is the education level related to trust, fairness, and altruism values in different countries?
+  \item Are there differences in trust, fairness, and altruism levels based on marital status in European countries?
+  \item What is the distribution of trust, fairness, and altruism values across different types of residential areas, such as large cities, rural areas, etc.?
+  \item Are there common patterns or trends in the relationship between sociodemographic variables and social values in European countries?
+\end{itemize}
+
+These questions aim to understand the distribution and relationships between social and sociodemographic variables, allowing social policy decision-makers to make informed decisions and design more effective strategies in their respective countries.
 
 
 
+\section{Resultados}
+
+<<echo=FALSE>>=
+if(!require(tidyverse)){install.packages('tidyverse')
+  library(tidyverse)
+}
+
+if(!require(knitr)){install.packages('knitr')
+  library(knitr)
+}
+
+if(!require(kableExtra)){install.packages('kableExtra')
+  library(kableExtra)
+}
+
+if(!require(lorem)){install.packages('lorem')
+  library(lorem)
+}
+
+if(!require(xtable)){install.packages('xtable')
+  library(xtable)
+}
+
+if(!require(dplyr)){install.packages('dplyr')
+  library(dplyr)
+}
+
+if(!require(ggplot2)){install.packages('ggplot2')
+  library(ggplot2)
+}
+
+
+if(!require(kableExtra)){install.packages('kableExtra')
+  library(kableExtra)
+}
+@
+
+
+
+
+\begin{table}[ht]
+\centering
+\caption{Medias por categoría de maritalb}
+\begin{tabular}{|l|c|c|c|}
+\hline
+maritalb & ppltrst\_media & pplfair\_media & pplhlp\_media \\
+\hline
+Casado/a & 5.0 & 5.5 & 4.9 \\
+Pareja de hecho & 5.9 & 6.3 & 5.5 \\
+Separado/a & 4.8 & 5.2 & 4.9 \\
+Divorciado/a & 4.8 & 5.4 & 4.7 \\
+Viudo/a & 4.4 & 5.1 & 4.6 \\
+Soltero/a & 5.1 & 5.5 & 5.0 \\
+NA & 4.5 & 5.1 & 4.7 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+The obtained results show the means of the variables "Trust" (ppltrst), "Fairness" (pplfair), and "Altruism" (pplhlp) across different marital categories (maritalb). Here are some observations based on the provided data:
+
+\begin{itemize}
+  \item Married: The mean trust is 5.0, fairness is 5.5, and altruism is 4.9.
+  \item Cohabiting: This category has the highest means in all three variables, with values of 5.9, 6.3, and 5.5 for trust, fairness, and altruism, respectively.
+  \item Separated: Individuals who are separated show a mean trust of 4.8, fairness of 5.2, and altruism of 4.9.
+  \item Divorced: Similar to separated individuals, the divorced have a mean trust of 4.8, fairness of 5.4, and altruism of 4.7.
+  \item Widowed: Widows have a mean trust of 4.4, fairness of 5.1, and altruism of 4.6.
+  \item Single: The mean trust for singles is 5.1, fairness is 5.5, and altruism is 5.0.
+  \item NA: This category includes cases with missing data. They have a mean trust of 4.5, fairness of 5.1, and altruism of 4.7.
+\end{itemize}
+
+These results provide insights into the variation of trust, fairness, and altruism means across marital categories. For instance, cohabiting individuals have higher means in all variables compared to other categories, while widowed individuals and those with missing data tend to have lower means. These findings could be useful for better understanding the relationships between marital status and social attitudes and behaviors.
+
+
+\section{Texto incrustado}
+
+<<echo=FALSE>>=
+datos <- read.csv("Datos depurados.csv")
+
+media_ppltrst <- mean(datos$ppltrst)
+media_pplfair <- mean(datos$pplfair)
+media_pplhlp <- mean(datos$pplhlp)
+
+@
+
+
+El numero total de participantes en el estudio es \emph{\Sexpr{nrow(datos)}}.
+
+
+
+\section{Ejemplos graficos del dasboard generado}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figura_1.png}
+\caption{Pagina 1 del Dasboard}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figura_2.png}
+\caption{Pagina 2 del Dasboard}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figura_3.png}
+\caption{Pagina 3 del Dasboard}
+\end{figure}
 
 \end{document}
